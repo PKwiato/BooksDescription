@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Discovery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-globes">
+        <div class="globe globe-1"></div>
+        <div class="globe globe-2"></div>
+    </div>
+
+    <main class="container">
+        <header class="hero">
+            <h1>Discover Your Next Read</h1>
+            <p>Enter a title to uncover the story within.</p>
+        </header>
+
+        <section class="search-section">
+            <div class="input-wrapper">
+                <input type="text" id="bookInput" placeholder="Enter book title (e.g., Wiedźmin)" autocomplete="off">
+                <button id="searchBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    Search
+                </button>
+            </div>
+        </section>
+
+        <section id="resultContainer" class="result-card hidden">
+            <div class="loading-state hidden" id="loadingState">
+                <div class="spinner"></div>
+                <p>Searching the library...</p>
+            </div>
+
+            <div id="contentState" class="">
+                <div class="meta-header">
+                    <span class="label">Author</span>
+                    <h2 id="bookAuthor" class="author-name"></h2>
+                </div>
+                
+                <div class="title-block">
+                    <h3 id="bookTitle" class="book-title"></h3>
+                </div>
+
+                <div class="description-block">
+                    <span class="label">Description</span>
+                    <p id="bookDescription" class="description-text"></p>
+                </div>
+
+                <a id="bookLink" href="#" target="_blank" class="source-link">View on Lubimyczytac.pl &rarr;</a>
+            </div>
+
+            <div id="errorState" class="error-msg hidden">
+                <p id="errorMessage"></p>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -2,6 +2,7 @@ import logging
 import httpx
 from bs4 import BeautifulSoup
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, Dict, Any
 
 # --- Configuration & Setup ---
@@ -17,6 +18,15 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Lubimyczytac.pl ISBN Scraper",
     description="A simple API to fetch book descriptions from lubimyczytac.pl using ISBN."
+)
+
+# Enable CORS (Cross-Origin Resource Sharing)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 class LubimyCzytacScraper:

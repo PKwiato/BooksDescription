@@ -1,7 +1,7 @@
 import logging
 import httpx
 from bs4 import BeautifulSoup
-from fastapi import FastAPI, HTTPException, Path
+from fastapi import FastAPI, HTTPException, Query
 from typing import Optional, Dict, Any
 
 # --- Configuration & Setup ---
@@ -41,17 +41,17 @@ class LubimyCzytacScraper:
         # but for this simple script, we'll manage it per request or via context manager.
         pass
 
-    async def get_book_url_from_isbn(self, isbn: str) -> Optional[str]:
+    async def get_book_url_from_query(self, query: str) -> Optional[str]:
         """
-        Searches for a book by its ISBN and returns the absolute URL to its page.
+        Searches for a book by its title/query and returns the absolute URL to its page.
         
         Args:
-            isbn: The ISBN string (10 or 13 digits).
+            query: The search query (e.g., book title).
             
         Returns:
             The full URL to the book page if found, otherwise None.
         """
-        params = {"phrase": isbn}
+        params = {"phrase": query}
         
         try:
             async with httpx.AsyncClient(headers=self.HEADERS, follow_redirects=True, timeout=10.0) as client:
@@ -59,9 +59,8 @@ class LubimyCzytacScraper:
                 response.raise_for_status()
                 
                 # Check if we were redirected directly to a book page
-                # (Lubimyczytac often redirects direct ISBN hits)
                 if "/ksiazka/" in str(response.url):
-                    logger.info(f"Direct redirect to book page for ISBN {isbn}: {response.url}")
+                    logger.info(f"Direct redirect to book page for query '{query}': {response.url}")
                     return str(response.url)
 
                 soup = BeautifulSoup(response.text, "html.parser")
@@ -71,7 +70,7 @@ class LubimyCzytacScraper:
                 
                 # Fallback selectors for different layout versions or unexpected results
                 if not book_link_element:
-                    logger.debug(f"Primary selector failed for ISBN {isbn}, trying fallbacks.")
+                    logger.debug(f"Primary selector failed for query '{query}', trying fallbacks.")
                     book_link_element = (
                         soup.select_one(".book-list-item__title a") or 
                         soup.select_one("a[href*='/ksiazka/']")
@@ -87,9 +86,9 @@ class LubimyCzytacScraper:
                 return None
                 
         except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error searching for ISBN {isbn}: {e.response.status_code}")
+            logger.error(f"HTTP error searching for query '{query}': {e.response.status_code}")
         except Exception as e:
-            logger.error(f"Unexpected error searching for ISBN {isbn}: {e}")
+            logger.error(f"Unexpected error searching for query '{query}': {e}")
         
         return None
 
@@ -174,32 +173,32 @@ scraper = LubimyCzytacScraper()
 
 # --- API Endpoints ---
 
-@app.get("/book/{isbn}", response_model=Dict[str, Any])
-async def get_book_by_isbn(
-    isbn: str = Path(..., description="The ISBN-10 or ISBN-13 of the book", min_length=10, max_length=17)
+@app.get("/book", response_model=Dict[str, Any])
+async def search_book(
+    title: str = Query(..., description="The title of the book to search for", min_length=2)
 ):
     """
     Fetch book details (title, author, description) from lubimyczytac.pl 
-    using the provided ISBN.
+    using the provided title query.
     """
-    logger.info(f"API Request: Metadata for ISBN {isbn}")
+    logger.info(f"API Request: Metadata for title '{title}'")
     
     # Step 1: Find the book URL
-    book_url = await scraper.get_book_url_from_isbn(isbn)
+    book_url = await scraper.get_book_url_from_query(title)
     
     if not book_url:
-        logger.warning(f"ISBN {isbn} not found.")
+        logger.warning(f"Book with title '{title}' not found.")
         raise HTTPException(
             status_code=404, 
-            detail=f"Book with ISBN {isbn} not found on lubimyczytac.pl"
+            detail=f"Book with title '{title}' not found on lubimyczytac.pl"
         )
     
     # Step 2: Scrape the details from the book page
     logger.info(f"Found book URL: {book_url}. Proceeding to scrape details.")
     book_data = await scraper.scrape_book_details(book_url)
     
-    # Step 3: Enrich with original ISBN and return
-    book_data["isbn"] = isbn
+    # Step 3: Enrich with original query and return
+    book_data["query"] = title
     return book_data
 
 # --- Entry Point ---
@@ -212,4 +211,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     
     logger.info(f"Starting server on port {port}")
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)

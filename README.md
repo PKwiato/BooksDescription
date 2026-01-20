@@ -1,10 +1,10 @@
-# Lubimyczytac.pl ISBN Scraper API
+# Lubimyczytac.pl Book Search API
 
-A slim and efficient Python backend built with **FastAPI** that scrapes book descriptions, titles, and authors from the popular Polish book portal `lubimyczytac.pl` using an ISBN.
+A slim and efficient Python backend built with **FastAPI** that scrapes book descriptions, titles, and authors from the popular Polish book portal `lubimyczytac.pl` using a book title.
 
 ## 🚀 Features
 
-- **ISBN Search**: Automatically finds book pages by ISBN-10 or ISBN-13.
+- **Title Search**: Automatically finds book pages by title or query.
 - **Smart Scraper**: Hand-tuned selectors and fallbacks to ensure high accuracy.
 - **Clean Output**: Automatically removes UI artifacts like "read more" buttons and extra whitespace.
 - **Async Implementation**: Built with `httpx` and `BeautifulSoup4` for high performance.
@@ -12,7 +12,7 @@ A slim and efficient Python backend built with **FastAPI** that scrapes book des
 
 ## 🛠️ How It Works
 
-1. **Search**: The API takes an ISBN and performs a search on `lubimyczytac.pl`.
+1. **Search**: The API takes a book title and performs a search on `lubimyczytac.pl`.
 2. **Redirect Detection**: If the search results in a direct hit, the scraper follows the redirect to the book page.
 3. **Extraction**: It parses the HTML to extract the book's title, author, and description.
 4. **Cleanup**: Polish UI elements like "Rozwiń opis" are stripped to provide a clean JSON response.
@@ -50,21 +50,24 @@ python3 main.py
 The API will be available at `http://localhost:8000`.
 
 ### API Example
-**Endpoint**: `GET /book/{isbn}`
+**Endpoint**: `GET /book`
+
+**Parameters**:
+- `title` (query parameter): The title of the book to search for.
 
 **Example Request**:
 ```bash
-curl http://localhost:8000/book/9788324063255
+curl "http://localhost:8000/book?title=Wiedzmin"
 ```
 
 **Example Response**:
 ```json
 {
-  "title": "Odyseja kosmiczna 2010",
-  "author": "Arthur C. Clarke",
-  "description": "Dziewięć lat po katastrofalnej misji Discovery...",
-  "url": "https://lubimyczytac.pl/ksiazka/5051954/odyseja-kosmiczna-2010",
-  "isbn": "9788324063255"
+  "title": "Wiedźmin",
+  "author": "Andrzej Sapkowski",
+  "description": "Wiedźmin to polski cykl książek...",
+  "url": "https://lubimyczytac.pl/ksiazka/4820835/wiedzmin-paki-et-okolicznosciowy",
+  "query": "Wiedzmin"
 }
 ```
 
@@ -82,7 +85,7 @@ This project is structured for easy deployment:
 
 ## 🌟 Use Cases
 
-- **Library Management**: Enrich book databases with detailed descriptions using ISBNs.
+- **Library Management**: Enrich book databases with detailed descriptions using titles.
 - **Book Apps**: Integrate a reliable source of book information for mobile or web applications.
 - **E-commerce**: Automatically populate product descriptions for online bookstores.
 - **Data Science**: Gather datasets of Polish book summaries for NLP projects.
